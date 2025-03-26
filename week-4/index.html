@@ -7,31 +7,43 @@
     let todoState = [];
     let oldTodoState = [];
 
-    function addTodoToDom() {
-      
+    function addTodoToDom(todo) {
+      const todoDiv = document.createElement("div");
+      todoDiv.id = `todo-${todo.id}`;
+      todoDiv.innerHTML = `<h3>${todo.title}</h3><p>${todo.description}</p>`;
+      document.getElementById("todos").appendChild(todoDiv);
     }
 
     function removeTodoFromDom(todo) {
-      
+      const todoElement = document.getElementById(`todo-${todo.id}`);
+      if (todoElement) {
+        todoElement.remove();
+      }
     }
 
     function updateTodoInDom(oldTodo, newTodo) {
-        
+      const todoElement = document.getElementById(`todo-${oldTodo.id}`);
+      if (todoElement) {
+        todoElement.innerHTML = `<h3>${newTodo.title}</h3><p>${newTodo.description}</p>`;
+      }
     }
 
     function updateState(newTodos) {
-      // calculate the diff b/w newTodos and oldTodos.
-      // More specifically, find out what todos are - 
-      // 1. added
-      // 2. deleted
-      // 3. updated
-      const added = [];
-      const deleted = [];
-      const updated = [];
-      // calculate these 3 arrays
-      // call addTodo, removeTodo, updateTodo functions on each of the
-      // elements
-      oldTodoState = newTodos;
+      const added = newTodos.filter(todo => !oldTodoState.some(old => old.id === todo.id));
+      const deleted = oldTodoState.filter(old => !newTodos.some(todo => todo.id === old.id));
+      const updated = newTodos.filter(todo => {
+        const oldTodo = oldTodoState.find(old => old.id === todo.id);
+        return oldTodo && (oldTodo.title !== todo.title || oldTodo.description !== todo.description);
+      });
+
+      added.forEach(addTodoToDom);
+      deleted.forEach(removeTodoFromDom);
+      updated.forEach(todo => {
+        const oldTodo = oldTodoState.find(old => old.id === todo.id);
+        updateTodoInDom(oldTodo, todo);
+      });
+
+      oldTodoState = [...newTodos];
     }
 
     function addTodo() {
@@ -41,7 +53,7 @@
         title: title,
         description: description,
         id: globalId++,
-      })
+      });
       updateState(todoState);
     }
   </script>
@@ -53,9 +65,7 @@
   <button onclick="addTodo()">Add todo</button>
   <br /> <br />
 
-  <div id="todos">
-
-  </div>
+  <div id="todos"></div>
 </body>
 
 </html>
